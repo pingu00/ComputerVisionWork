@@ -22,7 +22,7 @@ int main()
     fread(&hf, sizeof(BITMAPFILEHEADER), 1, fp);
     fread(&hInfo, sizeof(BITMAPINFOHEADER), 1, fp);
     fread(hRGB, sizeof(RGBQUAD), 256, fp);
-    int ImgSize = hInfo.biWidth * hInfo.biHeight;
+    int ImgSize = (int)(hInfo.biWidth * hInfo.biHeight);
     BYTE * Image = (BYTE *)malloc(ImgSize);
     // 정적할당으로표현하자면 BYTE Image[ImgSize];
     BYTE * Output1 = (BYTE *)malloc(ImgSize);
