@@ -15,10 +15,10 @@ typedef unsigned short WORD;
 
 typedef unsigned int DWORD;
 
-typedef long LONG;
+typedef unsigned int LONG;
 
 
-
+//#pragma pack(push,1)
 typedef struct tagBITMAPFILEHEADER{
 
 WORD bfType;
@@ -74,4 +74,4 @@ BYTE rgbRed;
 BYTE rgbReserved1;
 
 }RGBQUAD;
-
+//#pragma pack(pop)

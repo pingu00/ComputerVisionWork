@@ -7,7 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		285EACD127DD523D0052F1AD /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 285EACD027DD523D0052F1AD /* main.cpp */; };
+		285EACD127DD523D0052F1AD /* lenatest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 285EACD027DD523D0052F1AD /* lenatest.cpp */; };
+		28923DC927EF72FA005CD795 /* histogram.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 28923DC827EF72FA005CD795 /* histogram.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -24,8 +25,10 @@
 
 /* Begin PBXFileReference section */
 		285EACCD27DD523D0052F1AD /* BMP */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = BMP; sourceTree = BUILT_PRODUCTS_DIR; };
-		285EACD027DD523D0052F1AD /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; usesTabs = 0; };
+		285EACD027DD523D0052F1AD /* lenatest.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = lenatest.cpp; sourceTree = "<group>"; usesTabs = 0; };
 		285EACD727DD52D40052F1AD /* Header.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Header.hpp; sourceTree = "<group>"; };
+		28923DC727EF72ED005CD795 /* coin.bmp */ = {isa = PBXFileReference; lastKnownFileType = image.bmp; path = coin.bmp; sourceTree = "<group>"; };
+		28923DC827EF72FA005CD795 /* histogram.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = histogram.cpp; sourceTree = "<group>"; };
 		28CE979427E8E8A600C25E3A /* lenna.bmp */ = {isa = PBXFileReference; lastKnownFileType = image.bmp; path = lenna.bmp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -59,9 +62,11 @@
 		285EACCF27DD523D0052F1AD /* BMP */ = {
 			isa = PBXGroup;
 			children = (
-				28CE979427E8E8A600C25E3A /* lenna.bmp */,
-				285EACD027DD523D0052F1AD /* main.cpp */,
 				285EACD727DD52D40052F1AD /* Header.hpp */,
+				28CE979427E8E8A600C25E3A /* lenna.bmp */,
+				285EACD027DD523D0052F1AD /* lenatest.cpp */,
+				28923DC727EF72ED005CD795 /* coin.bmp */,
+				28923DC827EF72FA005CD795 /* histogram.cpp */,
 			);
 			path = BMP;
 			sourceTree = "<group>";
@@ -123,7 +128,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				285EACD127DD523D0052F1AD /* main.cpp in Sources */,
+				28923DC927EF72FA005CD795 /* histogram.cpp in Sources */,
+				285EACD127DD523D0052F1AD /* lenatest.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -169,7 +175,7 @@
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_NO_COMMON_BLOCKS = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -227,7 +233,7 @@
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
-				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_NO_COMMON_BLOCKS = NO;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
