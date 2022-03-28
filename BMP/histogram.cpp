@@ -112,15 +112,16 @@ void Binarization(BYTE * Img, BYTE * Out, int W, int H, BYTE Threshold)
 int GonzalezBinThresh(BYTE * Output, int * Histo, int ImgSize )
 {   int sum= 0 ;
     int T;
+    int eps = 3; //diffrence of T and T_next under eps ->  exit
+    int diff = eps + 1;//First setting
     
     
-    double diff = 1;
     for (int i=0; i < ImgSize ; i++){
         sum += Output[i];
     }
     T = sum / ImgSize;
-    
-    while (diff >= 1){
+    printf("First Thres : %d\n",T);
+    while (diff > eps){
         int T_next;
         int sumlow=0;
         int sumhigh=0;
@@ -137,6 +138,7 @@ int GonzalezBinThresh(BYTE * Output, int * Histo, int ImgSize )
             }
         }
         T_next = (sumlow/countl + sumhigh/counth)/2 ;
+        printf("Next Thres : %d\n",T_next);
         diff = abs(T - T_next);
         T = T_next;
     }
@@ -164,11 +166,11 @@ int main()
     fclose(fp);
 
     int Histo[256] = { 0 };
-    int AHisto[256] = { 0 };
+//    int AHisto[256] = { 0 };
 
     ObtainHistogram(Image, Histo, hInfo.biWidth, hInfo.biHeight);
-    ObtainAHistogram(Histo, AHisto);
-    HistogramEqualization(Image, Output, AHisto, hInfo.biWidth, hInfo.biHeight);
+//    ObtainAHistogram(Histo, AHisto);
+//    HistogramEqualization(Image, Output, AHisto, hInfo.biWidth, hInfo.biHeight);
     int Thres = GonzalezBinThresh(Output,Histo,ImgSize); // 임계치 T
     Binarization(Image, Output, hInfo.biWidth, hInfo.biHeight, Thres);
     
