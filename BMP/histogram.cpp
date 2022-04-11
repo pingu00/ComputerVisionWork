@@ -306,7 +306,7 @@ void Laplace_Conv_DC(BYTE* Img, BYTE* Out, int W, int H) // Prewitt 마스크 X
 void Prewitt_BOTH_Conv(BYTE* Img,BYTE* temp, BYTE* Out, int W, int H){
     for( int i = 1; i < W * H; i++){
         if ( Img[i] < temp[i]){
-            Out[i] = temp[i];
+            Out[i] = temp[i];lenna_impulse.bmp
         }
         else Out[i] = Img[i];
     }
