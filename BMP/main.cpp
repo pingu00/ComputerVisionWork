@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #pragma warning(disable:4996)
 #include "Header.hpp"
-
+//#include <Windows.h>
 void InverseImage(BYTE* Img, BYTE *Out, int W, int H)
 {
     int ImgSize = W * H;
@@ -89,7 +89,7 @@ void HistogramEqualization(BYTE* Img, BYTE* Out, int* AHisto, int W, int H)
 {
     int ImgSize = W * H;
     int Nt = W * H, Gmax = 255;
-    double Ratio = Gmax / (double)Nt;
+    double Ratio = Gmax / (double)Nt;// 0이랑 1사이의 비율값을 가짐
     BYTE NormSum[256];
     for (int i = 0; i < 256; i++) {
         NormSum[i] = (BYTE)(Ratio * AHisto[i]);// 누적합을 정규화 시켜주는 과정
@@ -99,6 +99,7 @@ void HistogramEqualization(BYTE* Img, BYTE* Out, int* AHisto, int W, int H)
         Out[i] = NormSum[Img[i]];
     }
 }
+
 
 void Binarization(BYTE * Img, BYTE * Out, int W, int H, BYTE Threshold)
 {
@@ -303,23 +304,76 @@ void Laplace_Conv_DC(BYTE* Img, BYTE* Out, int W, int H) // Prewitt 마스크 X
         }
     }
 }
-void Prewitt_BOTH_Conv(BYTE* Img,BYTE* temp, BYTE* Out, int W, int H){
+void Prewitt_BOTH_Conv(BYTE* Img,BYTE* temp, BYTE* Out, int W, int H)
+{
     for( int i = 1; i < W * H; i++){
         if ( Img[i] < temp[i]){
-            Out[i] = temp[i];lenna_impulse.bmp
+            Out[i] = temp[i];
         }
         else Out[i] = Img[i];
     }
 }
+void swap(BYTE* a, BYTE* b)
+{
+    BYTE temp = *a;
+    *a = *b;
+    *b = temp;
+}
 
+BYTE Median(BYTE* arr, int size)
+{
+    const int S = size;
+    for (int i = 0; i < size - 1; i++) // pivot index
+    {
+        for (int j = i + 1; j < size; j++) // ∫Ò±≥¥ÎªÛ index
+        {
+            if (arr[i] > arr[j])     swap(&arr[i], &arr[j]);
+        }
+    }
+    return arr[S/2];
+}
 
+BYTE MaxPooling(BYTE* arr, int size)
+{
+    const int S = size;
+    for (int i = 0; i < size - 1; i++) // pivot index
+    {
+        for (int j = i + 1; j < size; j++) // ∫Ò±≥¥ÎªÛ index
+        {
+            if (arr[i] > arr[j])     swap(&arr[i], &arr[j]);
+        }
+    }
+    return arr[S-1];
+}
+BYTE MinPooling(BYTE* arr, int size)
+{
+    
+    for (int i = 0; i < size - 1; i++) // pivot index
+    {
+        for (int j = i + 1; j < size; j++) // ∫Ò±≥¥ÎªÛ index
+        {
+            if (arr[i] > arr[j])     swap(&arr[i], &arr[j]);
+        }
+    }
+    return arr[0];
+}
+void SaveBMPFile(BITMAPFILEHEADER hf, BITMAPINFOHEADER hInfo,
+    RGBQUAD* hRGB, BYTE* Output, int W, int H, const char* FileName)
+{
+    FILE * fp = fopen(FileName, "wb");
+    fwrite(&hf, sizeof(BYTE), sizeof(BITMAPFILEHEADER), fp);
+    fwrite(&hInfo, sizeof(BYTE), sizeof(BITMAPINFOHEADER), fp);
+    fwrite(hRGB, sizeof(RGBQUAD), 256, fp);
+    fwrite(Output, sizeof(BYTE), W*H, fp);
+    fclose(fp);
+}
 int main()
 {
     BITMAPFILEHEADER hf; // 14
     BITMAPINFOHEADER hInfo; // 40
     RGBQUAD hRGB[256]; // 1024
     FILE* fp;
-    fp = fopen("LENNA.bmp", "rb");
+    fp = fopen("lenna_impulse.bmp", "rb");
     if (fp == NULL) {
         printf("File not found!\n");
         return -1;
@@ -333,19 +387,80 @@ int main()
     BYTE * Output = (BYTE*)malloc(ImgSize);
     fread(Image, sizeof(BYTE), ImgSize, fp);
     fclose(fp);
-
+//
 //    int Histo[256] = { 0 };
 //    int AHisto[256] = { 0 };
+//
+//
+    
+/* Median filtering */
+//BYTE temp[9];
+//int W = hInfo.biWidth, H = hInfo.biHeight;
+//int i, j;
+//for (i = 1; i < H - 1; i++) {
+//    for (j = 1; j < W - 1; j++) {
+//        temp[0] = Image[(i - 1) * W + j-1];
+//        temp[1] = Image[(i - 1) * W + j];
+//        temp[2] = Image[(i - 1) * W + j+1];
+//        temp[3] = Image[i * W + j-1];
+//        temp[4] = Image[i * W + j];
+//        temp[5] = Image[i * W + j+1];
+//        temp[6] = Image[(i + 1) * W + j-1];
+//        temp[7] = Image[(i + 1) * W + j];
+//        temp[8] = Image[(i + 1) * W + j+1];
+//        Output[i * W + j] = Median(temp, 9);
+//        //Output[i * W + j] = MaxPooling(temp, 9);
+//        //Output[i * W + j] = MinPooling(temp, 9);
+//    }
+//}
+/* Median filtering */
+    int Length = 5;  // 마스크의 한 변의 길이
 
+    int Margin = Length / 2;//필터를 적용시킬수 없는 구간을 마스킹하지 않기위해 마진을 준다
+
+    int WSize = Length * Length;//마스크의 양변의 크기를 곱하여 사이즈를 구한다.
+
+    BYTE* temp = (BYTE*)malloc(sizeof(BYTE) * WSize);//마스크 메모리를 할당한다.
+
+    int W = hInfo.biWidth, H = hInfo.biHeight; // 입력받은 bmp file의 width 와 height를 받아 선언한다.
+
+    int i, j, m, n; // for문을 위한 인자 선언
+
+    for (i = Margin; i < H - Margin; i++) {//마스크의 열 이동
+
+        for (j = Margin; j < W - Margin; j++) {// 마스크의 행이동
+
+            for (m = -Margin; m <= Margin; m++) {// 마스크 내부의 열 이동
+
+                for (n = -Margin; n <= Margin; n++) { // 마스크 내부의 행이동
+
+                    temp[(m + Margin) * Length + (n + Margin)] = Image[(i+m)*W + j+n]; //마스크 현구간에있는 Image의 모든 일차원 인덱스에서의 값을 temp에 입력해준다. 그때 일차원 배열을 이차원으로 바꿔주는 계산식이 포함되어있다. 공식 [Y좌표값 * W( width) + X 좌표] 를 이용하여 이차원에서 원하는 값이 일차원에서는 몇번쨰 인덱스인지 치환해준다.
+
+                }
+
+            }
+
+            Output[i * W + j] = Median(temp, WSize);//순차적으로 입력된 temp 배열에서 중간값을 return해주는 함수인 median을 이용해서 마스크의 중간지점에 마스크의 WSize 중 중간값에 해당하는 값을 oupput에 입력 해준다.
+
+        }
+
+    }
+
+    free(temp);//마스크를위해 할당해줬던 메모리를 해방시켜준다.
+
+//    AverageConv(Image, Output, hInfo.biWidth, hInfo.biHeight);
+//
+
+    
 //    ObtainHistogram(Image, Histo, hInfo.biWidth, hInfo.biHeight);
 //    ObtainAHistogram(Histo, AHisto);
 //    HistogramEqualization(Image, Output, AHisto, hInfo.biWidth, hInfo.biHeight);
 //    int Thres = GonzalezBinThresh(Output,Histo,ImgSize); // 임계치 T
 //    Binarization(Image, Output, hInfo.biWidth, hInfo.biHeight, Thres);
     
-    Prewitt_X_Conv(Image, Temp, hInfo.biWidth, hInfo.biHeight);
-    Prewitt_Y_Conv(Image, Output, hInfo.biWidth, hInfo.biHeight);
-    Prewitt_BOTH_Conv(Output, Temp, Output, hInfo.biWidth, hInfo.biHeight);
+//    Prewitt_X_Conv(Image, Temp, hInfo.biWidth, hInfo.biHeight);
+//    Prewitt_Y_Conv(Image, Output, hInfo.biWidth, hInfo.biHeight);
+//    Prewitt_BOTH_Conv(Output, Temp, Output, hInfo.biWidth, hInfo.biHeight);
     //GaussAvrConv(Image, Output, hInfo.biWidth, hInfo.biHeight);
     
     /*Sobel_X_Conv(Image, Temp, hInfo.biWidth, hInfo.biHeight);
@@ -362,13 +477,5 @@ int main()
     //BrightnessAdj(Image, Output, hInfo.biWidth, hInfo.biHeight, 70);
     //ContrastAdj(Image, Output, hInfo.biWidth, hInfo.biHeight, 0.5);
     
-    fp = fopen("output.bmp", "wb");
-    fwrite(&hf, sizeof(BYTE), sizeof(BITMAPFILEHEADER), fp);
-    fwrite(&hInfo, sizeof(BYTE), sizeof(BITMAPINFOHEADER), fp);
-    fwrite(hRGB, sizeof(RGBQUAD), 256, fp);
-    fwrite(Output, sizeof(BYTE), ImgSize, fp);
-    fclose(fp);
-    free(Image);
-    free(Output);
-    return 0;
+SaveBMPFile(hf, hInfo, hRGB, Output, hInfo.biWidth, hInfo.biHeight, "midian_5.bmp");
 }

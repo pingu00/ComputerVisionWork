@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		285EACD127DD523D0052F1AD /* lenatest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 285EACD027DD523D0052F1AD /* lenatest.cpp */; };
-		28923DCC27EF93C4005CD795 /* histogram.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 28923DCA27EF93C4005CD795 /* histogram.cpp */; };
+		28923DCC27EF93C4005CD795 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 28923DCA27EF93C4005CD795 /* main.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -28,7 +28,9 @@
 		285EACD027DD523D0052F1AD /* lenatest.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = lenatest.cpp; sourceTree = "<group>"; usesTabs = 0; };
 		285EACD727DD52D40052F1AD /* Header.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Header.hpp; sourceTree = "<group>"; };
 		28923DC727EF72ED005CD795 /* coin.bmp */ = {isa = PBXFileReference; lastKnownFileType = image.bmp; path = coin.bmp; sourceTree = "<group>"; };
-		28923DCA27EF93C4005CD795 /* histogram.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = histogram.cpp; sourceTree = "<group>"; };
+		28923DCA27EF93C4005CD795 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		28A72E2E280405480079EB16 /* lenna_impulse.bmp */ = {isa = PBXFileReference; lastKnownFileType = image.bmp; path = lenna_impulse.bmp; sourceTree = "<group>"; };
+		28A72E2F28040CFC0079EB16 /* LENNA_gauss.bmp */ = {isa = PBXFileReference; lastKnownFileType = image.bmp; path = LENNA_gauss.bmp; sourceTree = "<group>"; };
 		28CE979427E8E8A600C25E3A /* lenna.bmp */ = {isa = PBXFileReference; lastKnownFileType = image.bmp; path = lenna.bmp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -66,7 +68,9 @@
 				28CE979427E8E8A600C25E3A /* lenna.bmp */,
 				285EACD027DD523D0052F1AD /* lenatest.cpp */,
 				28923DC727EF72ED005CD795 /* coin.bmp */,
-				28923DCA27EF93C4005CD795 /* histogram.cpp */,
+				28923DCA27EF93C4005CD795 /* main.cpp */,
+				28A72E2E280405480079EB16 /* lenna_impulse.bmp */,
+				28A72E2F28040CFC0079EB16 /* LENNA_gauss.bmp */,
 			);
 			path = BMP;
 			sourceTree = "<group>";
@@ -128,7 +132,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				28923DCC27EF93C4005CD795 /* histogram.cpp in Sources */,
+				28923DCC27EF93C4005CD795 /* main.cpp in Sources */,
 				285EACD127DD523D0052F1AD /* lenatest.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
