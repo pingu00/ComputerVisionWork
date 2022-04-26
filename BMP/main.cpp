@@ -91,7 +91,7 @@ void HistogramEqualization(BYTE* Img, BYTE* Out, int* AHisto, int W, int H)
     int ImgSize = W * H;
     int Nt = W * H, Gmax = 255;
     double Ratio = Gmax / (double)Nt;// 0이랑 1사이의 비율값을 가짐
-    BYTE NormSum[256];
+    BYTE NormSum[256];// 정규화된 누적 히스토그램
     for (int i = 0; i < 256; i++) {
         NormSum[i] = (BYTE)(Ratio * AHisto[i]);// 누적합을 정규화 시켜주는 과정
     }
@@ -111,41 +111,6 @@ void Binarization(BYTE * Img, BYTE * Out, int W, int H, BYTE Threshold)
     }
 }
 
-//int GonzalezBinThresh(BYTE * Output, int * Histo, int ImgSize )
-//{   int sum= 0 ;
-//    int T;
-//    int eps = 3; //diffrence of T and T_next under eps ->  exit
-//    int diff = eps + 1;//First setting
-//
-//
-//    for (int i=0; i < ImgSize ; i++){
-//        sum += Output[i];
-//    }
-//    T = sum / ImgSize;
-//    printf("First Thres : %d\n",T);
-//    while (diff > eps){
-//        int T_next;
-//        int sumlow=0;
-//        int sumhigh=0;
-//        int countl = 0;
-//        int counth = 0;
-//        for ( int i=0; i< ImgSize ; i++){
-//            if (Output[i]<T){
-//                sumlow += Output[i];
-//                countl++;
-//            }
-//            else{
-//                sumhigh += Output[i];
-//                counth++;
-//            }
-//        }
-//        T_next = (sumlow/countl + sumhigh/counth)/2 ;
-//        printf("Next Thres : %d\n",T_next);
-//        diff = abs(T - T_next);
-//        T = T_next;
-//    }
-//    return  T;
-//}
 int GonzalezBinThresh(BYTE * Output, int * Histo, int ImgSize )
 {
     int T;
@@ -426,7 +391,7 @@ int pop(short* stackx, short* stacky, short* vx, short* vy, int* top)
 
 
 // GlassFire 알고리즘을 이용한 라벨링 함수
-void m_BlobColoring(BYTE* CutImage, int height, int width) // grassfire algorythm 스택형. 구조는 알고있되 외울 필요는없다.
+void m_BlobColoring(BYTE* CutImage, int height, int width) // gㅣassfire algorythm 스택형. 구조는 알고있되 외울 필요는없다.
 {
     int i, j, m, n, top, area, Out_Area, index, BlobArea[1000];
     long k;
@@ -761,7 +726,7 @@ int main()
     BITMAPINFOHEADER hInfo; // 40
     RGBQUAD hRGB[256]; // 1024
     FILE* fp;
-    fp = fopen("pupil1.bmp", "rb");
+    fp = fopen("lenna.bmp", "rb");
     if (fp == NULL) {
         printf("File not found!\n");
         return -1;
@@ -827,7 +792,7 @@ int main()
 //    Binarization(Image, Output, hInfo.biWidth, hInfo.biHeight, Thres);
     
 //    Prewitt_X_Conv(Image, Output, hInfo.biWidth, hInfo.biHeight);
-//    Prewitt_Y_Conv(Image, Output, hInfo.biWidth, hInfo.biHeight);
+    Prewitt_Y_Conv(Image, Output, hInfo.biWidth, hInfo.biHeight);
 //    Prewitt_BOTH_Conv(Output, Temp, Output, hInfo.biWidth, hInfo.biHeight);
     //GaussAvrConv(Image, Output, hInfo.biWidth, hInfo.biHeight);
     
@@ -846,37 +811,19 @@ int main()
     //ContrastAdj(Image, Output, hInfo.biWidth, hInfo.biHeight, 0.5);
     
 //    m_BlobColoring(Output, hInfo.biWidth, hInfo.biHeight);
+  
+//    Binarization(Image, Temp, W, H, 30);
+//
+//    InverseImage(Temp, Temp, W, H);
+//
+//    m_BlobColoring(Temp, H, W);
     // 경계검출
-    Binarization(Image, Temp, W, H, 50);
+//    for (int i = 0; i < ImgSize; i++)
+//        Output[i] = Image[i];
+//    BinaryImageEdgeDetection(Temp, Output, W, H);
+    
 
-    InverseImage(Temp, Temp, W, H);
-
-    m_BlobColoring(Temp, H, W);
-    for (int i = 0; i < ImgSize; i++)
-        Output[i] = Image[i];
-
-    for (int i = 0; i < H; i++) {
-
-        for (int j = 0; j < W; j++) {
-
-            if (Temp[i * W + j] == 0) {
-
-                if (!(Temp[(i - 1) * W + j] == 0 &&
-
-                    Temp[(i + 1) * W + j] == 0 &&
-
-                    Temp[i * W + (j - 1)] == 0 &&
-
-                    Temp[i * W + (j + 1)] == 0))
-
-                    Output[i * W + j] = 255;
-
-            }
-
-        }
-
-    }
     
     
-SaveBMPFile(hf, hInfo, hRGB, Output, hInfo.biWidth, hInfo.biHeight, "binaryeyes.bmp");
+SaveBMPFile(hf, hInfo, hRGB, Output, hInfo.biWidth, hInfo.biHeight, "x.bmp");
 }
