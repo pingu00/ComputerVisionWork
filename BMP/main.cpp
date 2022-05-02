@@ -562,11 +562,11 @@ void HorizontalFlip(BYTE* Img, int W, int H)
 void Translation(BYTE* Image, BYTE* Output, int W, int H, int Tx, int Ty)
 {
     // Translation
-    Ty *= -1;
+    Ty *= -1;// BMP파일이 뒤집혀 있기 때문에 y좌표에 마이너스
     for (int i = 0; i < H; i++) {
         for (int j = 0; j < W; j++) {
-            if ((i + Ty < H && i + Ty >= 0) && (j + Tx < W && j + Tx >= 0))
-                Output[(i + Ty) * W + (j + Tx)] = Image[i * W + j];
+            if ((i + Ty < H && i + Ty >= 0) && (j + Tx < W && j + Tx >= 0))// 영상밖으로 나가는 화소에대한 클리핑처리
+                Output[(i + Ty) * W + (j + Tx)] = Image[i * W + j];// 화소를 이동시키는 아주 간단한 코드
         }
     }
 }
@@ -577,28 +577,38 @@ void Scaling(BYTE* Image, BYTE* Output, int W, int H, double SF_X, double SF_Y)
     int tmpX, tmpY;
     for (int i = 0; i < H; i++) {
         for (int j = 0; j < W; j++) {
+            //tmpX = i*SF_X
+            //tmpY = i*SF_Y 의 곱셈방식은 영상화소에 홀이생긴다.
+            // 1.5 를 곱했을떄 홀, 0.5 를 곱했을때 중첩이 생긴다.
+            //그래서 역방향 매핑을 적용.. 역으로 이자리에 들어갈 화소가 뭐지..? 로접근
             tmpX = (int)(j / SF_X);
             tmpY = (int)(i / SF_Y);
             if (tmpY < H && tmpX < W)
                 Output[i * W + j] = Image[tmpY * W + tmpX];
+            // Output[tmpY*W + tmpX] = Image[i * W + j]   문제가있는 순방향 매핑
         }
     }
 
 }
 
-//void Rotation(BYTE* Image, BYTE* Output, int W, int H, int Angle)
-//{
-//    int tmpX, tmpY;
-//    double Radian = Angle * 3.141592 / 180.0;
-//    for (int i = 0; i < H; i++) {
-//        for (int j = 0; j < W; j++) {
-//            tmpX = (int)(cos(Radian) * j + sin(Radian) * i);
-//            tmpY = (int)(-sin(Radian) * j + cos(Radian) * i);
-//            if ((tmpY < H && tmpY >= 0) && (tmpX < W && tmpX >= 0))
-//                Output[i * W + j] = Image[tmpY * W + tmpX];
-//        }
-//    }
-//}
+void Rotation(BYTE* Image, BYTE* Output, int W, int H, int Angle)
+{
+    int tmpX, tmpY;
+    double Radian = Angle * 3.141592 / 180.0;
+    for (int i = 0; i < H; i++) {
+        for (int j = 0; j < W; j++) {
+//           tmpX = (int)(cos(Radian) * j + sin(Radian) * i);
+//           tmpY = (int)(-sin(Radian) * j + cos(Radian) * i);
+            // 순방향으로 매핑시키면 이동에서 홀이 생기는것과 같은원리로 꽃무늬같이 홀이 생김.. 따라서 역방향매핑
+            tmpX = (int)(cos(Radian) * j + sin(Radian) * i);
+            tmpY = (int)(-sin(Radian) * j + cos(Radian) * i); //시계방향으로의 회전을 역방향 매핑시킨 모습 꼬마신신고여야하는데 역방향이기때문에 반시계 방향으로 회전인 꽃신막신고를 적용
+            
+            if ((tmpY < H && tmpY >= 0) && (tmpX < W && tmpX >= 0))
+                Output[i * W + j] = Image[tmpY * W + tmpX];
+            // Output[tmpY*W + tmpX] = Image[i * W + j]   문제가있는 순방향 매핑
+        }
+    }
+}
 
 void MedianFiltering(BYTE* Image, BYTE* Output, int W, int H, int size)
 {
@@ -792,7 +802,7 @@ int main()
 //    Binarization(Image, Output, hInfo.biWidth, hInfo.biHeight, Thres);
     
 //    Prewitt_X_Conv(Image, Output, hInfo.biWidth, hInfo.biHeight);
-    Prewitt_Y_Conv(Image, Output, hInfo.biWidth, hInfo.biHeight);
+//    Prewitt_Y_Conv(Image, Output, hInfo.biWidth, hInfo.biHeight);
 //    Prewitt_BOTH_Conv(Output, Temp, Output, hInfo.biWidth, hInfo.biHeight);
     //GaussAvrConv(Image, Output, hInfo.biWidth, hInfo.biHeight);
     
@@ -822,7 +832,13 @@ int main()
 //        Output[i] = Image[i];
 //    BinaryImageEdgeDetection(Temp, Output, W, H);
     
-
+//기하변환
+    //VerticalFlip(Image, W, H);
+    //HorizontalFlip(Image, W, H);
+    //Translation(Image, Output, W, H, 100, 40);
+    //Scaling(Image, Output, W, H, 0.7, 0.7);
+    //Rotation(Image, Output, W, H, 60); // 원점 중심회전
+    //MedianFiltering(Image, Output, W, H, 11);
     
     
 SaveBMPFile(hf, hInfo, hRGB, Output, hInfo.biWidth, hInfo.biHeight, "x.bmp");
