@@ -8,6 +8,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #pragma warning(disable:4996)
 #include "Header.hpp"
 //#include <Windows.h>
@@ -737,10 +738,8 @@ int main()
     RGBQUAD hRGB[256]; // 1024
     FILE* fp;
     fp = fopen("lenna.bmp", "rb");
-    if (fp == NULL) {
-        printf("File not found!\n");
-        return -1;
-    }
+    if (fp == NULL) {fprintf(stderr,"ERROR");
+        exit(1);}
     fread(&hf, sizeof(BITMAPFILEHEADER), 1, fp);
     fread(&hInfo, sizeof(BITMAPINFOHEADER), 1, fp);
     fread(hRGB, sizeof(RGBQUAD), 256, fp);
@@ -756,40 +755,6 @@ int main()
 //    int AHisto[256] = { 0 };
 
 
-/* Median filtering */
-//    int Length = 5;  // 마스크의 한 변의 길이
-//
-//    int Margin = Length / 2;//필터를 적용시킬수 없는 구간을 마스킹하지 않기위해 마진을 준다
-//
-//    int WSize = Length * Length;//마스크의 양변의 크기를 곱하여 사이즈를 구한다.
-//
-//    BYTE* temp = (BYTE*)malloc(sizeof(BYTE) * WSize);//마스크 메모리를 할당한다.
-//
-//    int W = hInfo.biWidth, H = hInfo.biHeight; // 입력받은 bmp file의 width 와 height를 받아 선언한다.
-//
-//    int i, j, m, n; // for문을 위한 인자 선언
-//
-//    for (i = Margin; i < H - Margin; i++) {//마스크의 열 이동
-//
-//        for (j = Margin; j < W - Margin; j++) {// 마스크의 행이동
-//
-//            for (m = -Margin; m <= Margin; m++) {// 마스크 내부의 열 이동
-//
-//                for (n = -Margin; n <= Margin; n++) { // 마스크 내부의 행이동
-//
-//                    temp[(m + Margin) * Length + (n + Margin)] = Image[(i+m)*W + j+n]; //마스크 현구간에있는 Image의 모든 일차원 인덱스에서의 값을 temp에 입력해준다. 그때 일차원 배열을 이차원으로 바꿔주는 계산식이 포함되어있다. 공식 [Y좌표값 * W( width) + X 좌표] 를 이용하여 이차원에서 원하는 값이 일차원에서는 몇번쨰 인덱스인지 치환해준다.
-//
-//                }
-//
-//            }
-//
-//            Output[i * W + j] = Median(temp, WSize);//순차적으로 입력된 temp 배열에서 중간값을 return해주는 함수인 median을 이용해서 마스크의 중간지점에 마스크의 WSize 중 중간값에 해당하는 값을 oupput에 입력 해준다.
-//
-//        }
-//
-//    }
-//
-//    free(temp);//마스크를위해 할당해줬던 메모리를 해방시켜준다.
 
 //    AverageConv(Image, Output, hInfo.biWidth, hInfo.biHeight);
 //    checkConv(Image, Output, hInfo.biWidth, hInfo.biHeight);
@@ -841,5 +806,39 @@ int main()
     //MedianFiltering(Image, Output, W, H, 11);
     
     
-SaveBMPFile(hf, hInfo, hRGB, Output, hInfo.biWidth, hInfo.biHeight, "x.bmp");
+SaveBMPFile(hf, hInfo, hRGB, Output, W, H, "wah.bmp");
 }
+/* Median filtering */
+//    int Length = 5;  // 마스크의 한 변의 길이
+//
+//    int Margin = Length / 2;//필터를 적용시킬수 없는 구간을 마스킹하지 않기위해 마진을 준다
+//
+//    int WSize = Length * Length;//마스크의 양변의 크기를 곱하여 사이즈를 구한다.
+//
+//    BYTE* temp = (BYTE*)malloc(sizeof(BYTE) * WSize);//마스크 메모리를 할당한다.
+//
+//    int W = hInfo.biWidth, H = hInfo.biHeight; // 입력받은 bmp file의 width 와 height를 받아 선언한다.
+//
+//    int i, j, m, n; // for문을 위한 인자 선언
+//
+//    for (i = Margin; i < H - Margin; i++) {//마스크의 열 이동
+//
+//        for (j = Margin; j < W - Margin; j++) {// 마스크의 행이동
+//
+//            for (m = -Margin; m <= Margin; m++) {// 마스크 내부의 열 이동
+//
+//                for (n = -Margin; n <= Margin; n++) { // 마스크 내부의 행이동
+//
+//                    temp[(m + Margin) * Length + (n + Margin)] = Image[(i+m)*W + j+n]; //마스크 현구간에있는 Image의 모든 일차원 인덱스에서의 값을 temp에 입력해준다. 그때 일차원 배열을 이차원으로 바꿔주는 계산식이 포함되어있다. 공식 [Y좌표값 * W( width) + X 좌표] 를 이용하여 이차원에서 원하는 값이 일차원에서는 몇번쨰 인덱스인지 치환해준다.
+//
+//                }
+//
+//            }
+//
+//            Output[i * W + j] = Median(temp, WSize);//순차적으로 입력된 temp 배열에서 중간값을 return해주는 함수인 median을 이용해서 마스크의 중간지점에 마스크의 WSize 중 중간값에 해당하는 값을 oupput에 입력 해준다.
+//
+//        }
+//
+//    }
+//
+//    free(temp);//마스크를위해 할당해줬던 메모리를 해방시켜준다.
