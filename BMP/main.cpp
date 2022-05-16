@@ -11,7 +11,12 @@
 #include <math.h>
 #pragma warning(disable:4996)
 #include "Header.hpp"
+
+//#pragma warning(disable:4996)
+//#include <stdio.h>
+//#include <stdlib.h>
 //#include <Windows.h>
+//#include <math.h>
 void InverseImage(BYTE* Img, BYTE *Out, int W, int H)
 {
     int ImgSize = W * H;
@@ -563,11 +568,11 @@ void HorizontalFlip(BYTE* Img, int W, int H)
 void Translation(BYTE* Image, BYTE* Output, int W, int H, int Tx, int Ty)
 {
     // Translation
-    Ty *= -1;// BMP파일이 뒤집혀 있기 때문에 y좌표에 마이너스
+    Ty *= -1;
     for (int i = 0; i < H; i++) {
         for (int j = 0; j < W; j++) {
-            if ((i + Ty < H && i + Ty >= 0) && (j + Tx < W && j + Tx >= 0))// 영상밖으로 나가는 화소에대한 클리핑처리
-                Output[(i + Ty) * W + (j + Tx)] = Image[i * W + j];// 화소를 이동시키는 아주 간단한 코드
+            if ((i + Ty < H && i + Ty >= 0) && (j + Tx < W && j + Tx >= 0))
+                Output[(i + Ty) * W + (j + Tx)] = Image[i * W + j];
         }
     }
 }
@@ -578,38 +583,28 @@ void Scaling(BYTE* Image, BYTE* Output, int W, int H, double SF_X, double SF_Y)
     int tmpX, tmpY;
     for (int i = 0; i < H; i++) {
         for (int j = 0; j < W; j++) {
-            //tmpX = i*SF_X
-            //tmpY = i*SF_Y 의 곱셈방식은 영상화소에 홀이생긴다.
-            // 1.5 를 곱했을떄 홀, 0.5 를 곱했을때 중첩이 생긴다.
-            //그래서 역방향 매핑을 적용.. 역으로 이자리에 들어갈 화소가 뭐지..? 로접근
             tmpX = (int)(j / SF_X);
             tmpY = (int)(i / SF_Y);
             if (tmpY < H && tmpX < W)
                 Output[i * W + j] = Image[tmpY * W + tmpX];
-            // Output[tmpY*W + tmpX] = Image[i * W + j]   문제가있는 순방향 매핑
         }
     }
 
 }
 
-void Rotation(BYTE* Image, BYTE* Output, int W, int H, int Angle)
-{
-    int tmpX, tmpY;
-    double Radian = Angle * 3.141592 / 180.0;
-    for (int i = 0; i < H; i++) {
-        for (int j = 0; j < W; j++) {
-//           tmpX = (int)(cos(Radian) * j + sin(Radian) * i);
-//           tmpY = (int)(-sin(Radian) * j + cos(Radian) * i);
-            // 순방향으로 매핑시키면 이동에서 홀이 생기는것과 같은원리로 꽃무늬같이 홀이 생김.. 따라서 역방향매핑
-            tmpX = (int)(cos(Radian) * j + sin(Radian) * i);
-            tmpY = (int)(-sin(Radian) * j + cos(Radian) * i); //시계방향으로의 회전을 역방향 매핑시킨 모습 꼬마신신고여야하는데 역방향이기때문에 반시계 방향으로 회전인 꽃신막신고를 적용
-            
-            if ((tmpY < H && tmpY >= 0) && (tmpX < W && tmpX >= 0))
-                Output[i * W + j] = Image[tmpY * W + tmpX];
-            // Output[tmpY*W + tmpX] = Image[i * W + j]   문제가있는 순방향 매핑
-        }
-    }
-}
+//void Rotation(BYTE* Image, BYTE* Output, int W, int H, int Angle)
+//{
+//    int tmpX, tmpY;
+//    double Radian = Angle * 3.141592 / 180.0;
+//    for (int i = 0; i < H; i++) {
+//        for (int j = 0; j < W; j++) {
+//            tmpX = (int)(cos(Radian) * j + sin(Radian) * i);
+//            tmpY = (int)(-sin(Radian) * j + cos(Radian) * i);
+//            if ((tmpY < H && tmpY >= 0) && (tmpX < W && tmpX >= 0))
+//                Output[i * W + j] = Image[tmpY * W + tmpX];
+//        }
+//    }
+//}
 
 void MedianFiltering(BYTE* Image, BYTE* Output, int W, int H, int size)
 {
@@ -721,124 +716,196 @@ void Obtain2DBoundingBox(BYTE* Image, int W, int H, int* LUX, int* LUY, int* RDX
         if (flag == 1) break;
     }
 }
+void FillColor(BYTE* Image, int X, int Y, int W, int H, BYTE R, BYTE G, BYTE B)
+{
+    Image[Y * W * 3 + X * 3] = B; // Blue 성분
+    Image[Y * W * 3 + X * 3 + 1] = G; // Green 성분
+    Image[Y * W * 3 + X * 3 + 2] = R; // Red 성분
+}
+void RGB2YCbCr(BYTE* Image, BYTE* Y, BYTE* Cb, BYTE* Cr, int W, int H)
+{
+    for (int i = 0; i < H; i++) { // Y좌표
+        for (int j = 0; j < W; j++) { // X좌표
+            Y[i * W + j] = (BYTE)(0.299 * Image[i * W * 3 + j * 3 + 2] + 0.587 * Image[i * W * 3 + j * 3 + 1] + 0.114 * Image[i * W * 3 + j * 3]);
+            Cb[i * W + j] = (BYTE)(-0.16874 * Image[i * W * 3 + j * 3 + 2] -0.3313 * Image[i * W * 3 + j * 3 + 1] + 0.5 * Image[i * W * 3 + j * 3] + 128.0);
+            Cr[i * W + j] = (BYTE)(0.5 * Image[i * W * 3 + j * 3 + 2] - 0.4187 * Image[i * W * 3 + j * 3 + 1] - 0.0813 * Image[i * W * 3 + j * 3] + 128.0);
+        }
+    }
+}
 void SaveBMPFile(BITMAPFILEHEADER hf, BITMAPINFOHEADER hInfo,
     RGBQUAD* hRGB, BYTE* Output, int W, int H, const char* FileName)
 {
     FILE * fp = fopen(FileName, "wb");
-    fwrite(&hf, sizeof(BYTE), sizeof(BITMAPFILEHEADER), fp);
-    fwrite(&hInfo, sizeof(BYTE), sizeof(BITMAPINFOHEADER), fp);
-    fwrite(hRGB, sizeof(RGBQUAD), 256, fp);
-    fwrite(Output, sizeof(BYTE), W*H, fp);
+    if (hInfo.biBitCount == 24) {
+        fwrite(&hf, sizeof(BYTE), sizeof(BITMAPFILEHEADER), fp);
+        fwrite(&hInfo, sizeof(BYTE), sizeof(BITMAPINFOHEADER), fp);
+        fwrite(Output, sizeof(BYTE), W * H * 3, fp);
+    }
+    else if (hInfo.biBitCount == 8) {
+        fwrite(&hf, sizeof(BYTE), sizeof(BITMAPFILEHEADER), fp);
+        fwrite(&hInfo, sizeof(BYTE), sizeof(BITMAPINFOHEADER), fp);
+        fwrite(hRGB, sizeof(RGBQUAD), 256, fp);
+        fwrite(Output, sizeof(BYTE), W * H, fp);
+    }
     fclose(fp);
 }
 int main()
 {
-    BITMAPFILEHEADER hf; // 14
-    BITMAPINFOHEADER hInfo; // 40
-    RGBQUAD hRGB[256]; // 1024
-    FILE* fp;
-    fp = fopen("lenna.bmp", "rb");
-    if (fp == NULL) {fprintf(stderr,"ERROR");
-        exit(1);}
-    fread(&hf, sizeof(BITMAPFILEHEADER), 1, fp);
-    fread(&hInfo, sizeof(BITMAPINFOHEADER), 1, fp);
-    fread(hRGB, sizeof(RGBQUAD), 256, fp);
-    int ImgSize = hInfo.biWidth * hInfo.biHeight;
-    int H = hInfo.biHeight, W = hInfo.biWidth;
-    BYTE * Image = (BYTE *)malloc(ImgSize);
-    BYTE * Temp = (BYTE *)malloc(ImgSize);
-    BYTE * Output = (BYTE*)malloc(ImgSize);
-    fread(Image, sizeof(BYTE), ImgSize, fp);
-    fclose(fp);
+        BITMAPFILEHEADER hf; // 14바이트
+        BITMAPINFOHEADER hInfo; // 40바이트
+        RGBQUAD hRGB[256]; // 1024바이트
+        FILE* fp;
+        fp = fopen("fruit.bmp", "rb");
+        if (fp == NULL) {
+            printf("File not found!\n");
+            return -1;
+        }
+        fread(&hf, sizeof(BITMAPFILEHEADER), 1, fp);
+        fread(&hInfo, sizeof(BITMAPINFOHEADER), 1, fp);
+        int ImgSize = hInfo.biWidth * hInfo.biHeight;
+        int H = hInfo.biHeight, W = hInfo.biWidth;
+        BYTE* Image;
+        BYTE* Output;
+        if (hInfo.biBitCount == 24) { // 트루컬러
+            Image = (BYTE*)malloc(ImgSize * 3);
+            Output = (BYTE*)malloc(ImgSize * 3);
+            fread(Image, sizeof(BYTE), ImgSize * 3, fp);
+        }
+        else { // 인덱스(그레이)
+            fread(hRGB, sizeof(RGBQUAD), 256, fp);
+            Image = (BYTE*)malloc(ImgSize);
+            Output = (BYTE*)malloc(ImgSize);
+            fread(Image, sizeof(BYTE), ImgSize, fp);
+        }
+        fclose(fp);
+        
+        int Histo[256] = { 0 };
+        int AHisto[256] = { 0 };
+
+        // (50, 40)위치를 특정 색상으로
+        /*for (int i = 0; i < W; i++) {
+            FillColor(Image, i, 200, W, H, 0, 255, 255);
+        }*/
+
+        // (50, 100) ~ (300, 400) 박스 채우기
+        /*for (int i = 100; i <= 400; i++) {
+            for (int j = 50; j <= 300; j++) {
+                FillColor(Image, j, i, W, H, 255, 0, 255);
+            }
+        }*/
+
+        // 가로 띠 만들기
+        /*
+        // 초기화
+        for (int i = 0; i <  H; i++) {
+            for (int j = 0; j < W; j++) {
+                Image[i * W * 3 + j * 3] = 0;
+                Image[i * W * 3 + j * 3 + 1] = 0;
+                Image[i * W * 3 + j * 3 + 2] = 0;
+            }
+        }
+        // y좌표 기준 0~239 (Red)
+        for (int i = 0; i < 240; i++) {
+            for (int j = 0; j < W; j++) {
+                Image[i*W*3 + j*3 + 2] = 255;
+            }
+        }
+        // y좌표 기준 120 ~ 359 (Green)
+        for (int i = 120; i < 360; i++) {
+            for (int j = 0; j < W; j++) {
+                Image[i * W * 3 + j * 3 + 1] = 255;
+            }
+        }
+        // y좌표 기준 240 ~ 479 (Blue)
+        for (int i = 240; i < 480; i++) {
+            for (int j = 0; j < W; j++) {
+                Image[i * W * 3 + j * 3] = 255;
+            }
+        }
+        */
+        
+        // 그라데이션 만들기 (B ~ R)
+        //double wt;
+        //for(int a = 0; a<120; a++){
+        //    for (int i = 0; i < W; i++) {
+        //        wt = i / (double)(W - 1);
+        //        Image[a * W * 3 + i * 3] = (BYTE)(255 * (1.0-wt));  // Blue
+        //        Image[a * W * 3 + i * 3 + 1] = (BYTE)(255 * (1.0 - wt)); // Green
+        //        Image[a * W * 3 + i * 3 + 2] = (BYTE)(255 * wt); // Red
+        //    }
+        //}
+        
+        //VerticalFlip(Image, W, H);
+        //HorizontalFlip(Image, W, H);
+        //Translation(Image, Output, W, H, 100, 40);
+        //Scaling(Image, Output, W, H, 0.7, 0.7);
+        //Rotation(Image, Output, W, H, 60); // 원점을 중심으로 회전
+        //MedianFiltering(Image, Output, W, H, 11);
+        //Binarization(Image, Output, W, H, 30);
+        //InverseImage(Output, Output, W, H);
+        //m_BlobColoring(Output, H, W);
+        //int Cx, Cy;
+        //int LUX, LUY, RDX, RDY;
+        //Obtain2DCenter(Output, W, H, &Cx, &Cy); // 이진영상의 무게중심 구하기
+        //Obtain2DBoundingBox(Output, W, H, &LUX, &LUY, &RDX, &RDY); // 이진영상의 외접직사각형 좌표 추출
+        //DrawCrossLine(Image, W, H, Cx, Cy);
+        //DrawRectOutline(Image, W, H, LUX, LUY, RDX, RDY);
+
+        // Red값이 큰 화소만 masking (R, G, B 모델 기준)
+        //for (int i = 0; i < H; i++) { // Y좌표
+        //    for (int j = 0; j < W; j++) { // X좌표
+        //        if (Image[i * W * 3 + j * 3 + 2] > 130 &&
+        //            Image[i * W * 3 + j * 3 + 1] < 50 &&
+        //            Image[i * W * 3 + j * 3 + 0] < 100) {
+        //            Output[i * W * 3 + j * 3] = Image[i * W * 3 + j * 3];
+        //            Output[i * W * 3 + j * 3 + 1] = Image[i * W * 3 + j * 3 + 1];
+        //            Output[i * W * 3 + j * 3 + 2] = Image[i * W * 3 + j * 3 + 2];
+        //        }
+        //        else
+        //            Output[i * W * 3 + j * 3] = Output[i * W * 3 + j * 3 +1] = Output[i * W * 3 + j * 3 +2] = 0;
+        //    }
+        //}
+    // rgb color model 에서는 밝기가 달라지면 검출이 어렵다.
+
+        BYTE* Y = (BYTE *)malloc(ImgSize);
+        BYTE* Cb = (BYTE*)malloc(ImgSize);
+        BYTE* Cr = (BYTE*)malloc(ImgSize);
+
+        RGB2YCbCr(Image, Y, Cb, Cr, W, H);
+
+        // 빨간색 딸기영역만 masking (Y, Cb, Cr 모델 기준)
+        for (int i = 0; i < H; i++) {
+            for (int j = 0; j < W; j++) {
+                if (Cb[i * W + j] > 80 && Cr[i * W + j] > 190) {
+                    Output[i * W * 3 + j * 3] = Image[i * W * 3 + j * 3];
+                    Output[i * W * 3 + j * 3 + 1] = Image[i * W * 3 + j * 3 + 1];
+                    Output[i * W * 3 + j * 3 + 2] = Image[i * W * 3 + j * 3 + 2];
+                }
+                else
+                    Output[i * W * 3 + j * 3] = Output[i * W * 3 + j * 3 + 1] = Output[i * W * 3 + j * 3 + 2] = 255;
+            }
+        }
 //
-//    int Histo[256] = { 0 };
-//    int AHisto[256] = { 0 };
 
-
-
-//    AverageConv(Image, Output, hInfo.biWidth, hInfo.biHeight);
-//    checkConv(Image, Output, hInfo.biWidth, hInfo.biHeight);
-
-    
-//    ObtainHistogram(Image, Histo, hInfo.biWidth, hInfo.biHeight);
-//    ObtainAHistogram(Histo, AHisto);
-//    HistogramEqualization(Image, Temp, AHisto, hInfo.biWidth, hInfo.biHeight);
-//    int Thres = GonzalezBinThresh(Image,Histo,ImgSize); // 임계치 T
-//    Binarization(Image, Output, hInfo.biWidth, hInfo.biHeight, Thres);
-    
-//    Prewitt_X_Conv(Image, Output, hInfo.biWidth, hInfo.biHeight);
-//    Prewitt_Y_Conv(Image, Output, hInfo.biWidth, hInfo.biHeight);
-//    Prewitt_BOTH_Conv(Output, Temp, Output, hInfo.biWidth, hInfo.biHeight);
-    //GaussAvrConv(Image, Output, hInfo.biWidth, hInfo.biHeight);
-    
-//    Sobel_X_Conv(Image, Temp, hInfo.biWidth, hInfo.biHeight);
-//    Sobel_Y_Conv(Image, Output, hInfo.biWidth, hInfo.biHeight);
-//    for (int i = 0; i < ImgSize; i++) {
-//        if (Temp[i] > Output[i])     Output[i] = Temp[i];
-//    }
-//    Binarization(Image, Output, hInfo.biWidth, hInfo.biHeight, 50);
-//    GaussAvrConv(Image, Temp, hInfo.biWidth, hInfo.biHeight);
-//    Laplace_Conv_DC(Temp, Output, hInfo.biWidth, hInfo.biHeight);
-    
-    //HistogramStretching(Image, Output, Histo, hInfo.biWidth, hInfo.biHeight);
-//    InverseImage(Output, Output, hInfo.biWidth, hInfo.biHeight);
-    //BrightnessAdj(Image, Output, hInfo.biWidth, hInfo.biHeight, 70);
-    //ContrastAdj(Image, Output, hInfo.biWidth, hInfo.biHeight, 0.5);
-    
-//    m_BlobColoring(Output, hInfo.biWidth, hInfo.biHeight);
-  
-//    Binarization(Image, Temp, W, H, 30);
+//        fp = fopen("Y.raw", "wb");
+//        fwrite(Y, sizeof(BYTE), W * H, fp);
+//        fclose(fp);
+//        fp = fopen("Cb.raw", "wb");
+//        fwrite(Cb, sizeof(BYTE), W* H, fp);
+//        fclose(fp);
+//        fp = fopen("Cr.raw", "wb");
+//        fwrite(Cr, sizeof(BYTE), W* H, fp);
+//        fclose(fp);
 //
-//    InverseImage(Temp, Temp, W, H);
-//
-//    m_BlobColoring(Temp, H, W);
-    // 경계검출
-//    for (int i = 0; i < ImgSize; i++)
-//        Output[i] = Image[i];
-//    BinaryImageEdgeDetection(Temp, Output, W, H);
-    
-//기하변환
-    //VerticalFlip(Image, W, H);
-    //HorizontalFlip(Image, W, H);
-    //Translation(Image, Output, W, H, 100, 40);
-    //Scaling(Image, Output, W, H, 0.7, 0.7);
-    //Rotation(Image, Output, W, H, 60); // 원점 중심회전
-    //MedianFiltering(Image, Output, W, H, 11);
-    
-    
-SaveBMPFile(hf, hInfo, hRGB, Output, W, H, "wah.bmp");
+//        free(Y);
+//        free(Cb);
+//        free(Cr);
+        SaveBMPFile(hf, hInfo, hRGB, Output, hInfo.biWidth, hInfo.biHeight, "output.bmp");
+
+
+
+        free(Image);
+        free(Output);
+        //free(Temp);
+        return 0;
 }
-/* Median filtering */
-//    int Length = 5;  // 마스크의 한 변의 길이
-//
-//    int Margin = Length / 2;//필터를 적용시킬수 없는 구간을 마스킹하지 않기위해 마진을 준다
-//
-//    int WSize = Length * Length;//마스크의 양변의 크기를 곱하여 사이즈를 구한다.
-//
-//    BYTE* temp = (BYTE*)malloc(sizeof(BYTE) * WSize);//마스크 메모리를 할당한다.
-//
-//    int W = hInfo.biWidth, H = hInfo.biHeight; // 입력받은 bmp file의 width 와 height를 받아 선언한다.
-//
-//    int i, j, m, n; // for문을 위한 인자 선언
-//
-//    for (i = Margin; i < H - Margin; i++) {//마스크의 열 이동
-//
-//        for (j = Margin; j < W - Margin; j++) {// 마스크의 행이동
-//
-//            for (m = -Margin; m <= Margin; m++) {// 마스크 내부의 열 이동
-//
-//                for (n = -Margin; n <= Margin; n++) { // 마스크 내부의 행이동
-//
-//                    temp[(m + Margin) * Length + (n + Margin)] = Image[(i+m)*W + j+n]; //마스크 현구간에있는 Image의 모든 일차원 인덱스에서의 값을 temp에 입력해준다. 그때 일차원 배열을 이차원으로 바꿔주는 계산식이 포함되어있다. 공식 [Y좌표값 * W( width) + X 좌표] 를 이용하여 이차원에서 원하는 값이 일차원에서는 몇번쨰 인덱스인지 치환해준다.
-//
-//                }
-//
-//            }
-//
-//            Output[i * W + j] = Median(temp, WSize);//순차적으로 입력된 temp 배열에서 중간값을 return해주는 함수인 median을 이용해서 마스크의 중간지점에 마스크의 WSize 중 중간값에 해당하는 값을 oupput에 입력 해준다.
-//
-//        }
-//
-//    }
-//
-//    free(temp);//마스크를위해 할당해줬던 메모리를 해방시켜준다.
