@@ -11,12 +11,133 @@
 #include <math.h>
 #pragma warning(disable:4996)
 #include "Header.hpp"
-
+//
 //#pragma warning(disable:4996)
 //#include <stdio.h>
 //#include <stdlib.h>
 //#include <Windows.h>
 //#include <math.h>
+//
+
+// 2차원 배열 동적할당 위함
+unsigned char** imageMatrix;
+// 이진영상에서
+unsigned char blankPixel = 255, imagePixel = 0;
+
+typedef struct {
+    int row, col;
+}pixel;
+
+int getBlackNeighbours(int row, int col) {
+
+    int i, j, sum = 0;
+
+    for (i = -1; i <= 1; i++) {
+        for (j = -1; j <= 1; j++) {
+            if (i != 0 || j != 0)
+                sum += (imageMatrix[row + i][col + j] == imagePixel);
+        }
+    }
+
+    return sum;
+}
+
+int getBWTransitions(int row, int col) {
+    return     ((imageMatrix[row - 1][col] == blankPixel && imageMatrix[row - 1][col + 1] == imagePixel)
+        + (imageMatrix[row - 1][col + 1] == blankPixel && imageMatrix[row][col + 1] == imagePixel)
+        + (imageMatrix[row][col + 1] == blankPixel && imageMatrix[row + 1][col + 1] == imagePixel)
+        + (imageMatrix[row + 1][col + 1] == blankPixel && imageMatrix[row + 1][col] == imagePixel)
+        + (imageMatrix[row + 1][col] == blankPixel && imageMatrix[row + 1][col - 1] == imagePixel)
+        + (imageMatrix[row + 1][col - 1] == blankPixel && imageMatrix[row][col - 1] == imagePixel)
+        + (imageMatrix[row][col - 1] == blankPixel && imageMatrix[row - 1][col - 1] == imagePixel)
+        + (imageMatrix[row - 1][col - 1] == blankPixel && imageMatrix[row - 1][col] == imagePixel));
+}
+
+int zhangSuenTest1(int row, int col) {
+    int neighbours = getBlackNeighbours(row, col);
+
+    return ((neighbours >= 2 && neighbours <= 6)
+        && (getBWTransitions(row, col) == 1)
+        && (imageMatrix[row - 1][col] == blankPixel || imageMatrix[row][col + 1] == blankPixel || imageMatrix[row + 1][col] == blankPixel)
+        && (imageMatrix[row][col + 1] == blankPixel || imageMatrix[row + 1][col] == blankPixel || imageMatrix[row][col - 1] == blankPixel));
+}
+
+int zhangSuenTest2(int row, int col) {
+    int neighbours = getBlackNeighbours(row, col);
+
+    return ((neighbours >= 2 && neighbours <= 6)
+        && (getBWTransitions(row, col) == 1)
+        && (imageMatrix[row - 1][col] == blankPixel || imageMatrix[row][col + 1] == blankPixel || imageMatrix[row][col - 1] == blankPixel)
+        && (imageMatrix[row - 1][col] == blankPixel || imageMatrix[row + 1][col] == blankPixel || imageMatrix[row][col + 1] == blankPixel));
+}
+
+void zhangSuen(unsigned char* image, unsigned char* output, int rows, int cols) {
+
+    int startRow = 1, startCol = 1, endRow, endCol, i, j, count, processed;
+
+    pixel* markers;
+
+    imageMatrix = (unsigned char**)malloc(rows * sizeof(unsigned char*));
+
+    for (i = 0; i < rows; i++) {
+        imageMatrix[i] = (unsigned char*)malloc((cols + 1) * sizeof(unsigned char));
+        for (int k = 0; k < cols; k++) imageMatrix[i][k] = image[i * cols + k];
+    }
+
+    endRow = rows - 2;
+    endCol = cols - 2;
+    do {
+        markers = (pixel*)malloc((endRow - startRow + 1) * (endCol - startCol + 1) * sizeof(pixel));
+        count = 0;
+
+        for (i = startRow; i <= endRow; i++) {
+            for (j = startCol; j <= endCol; j++) {
+                if (imageMatrix[i][j] == imagePixel && zhangSuenTest1(i, j) == 1) {
+                    markers[count].row = i;
+                    markers[count].col = j;
+                    count++;
+                }
+            }
+        }
+
+        processed = (count > 0);
+
+        for (i = 0; i < count; i++) {
+            imageMatrix[markers[i].row][markers[i].col] = blankPixel;
+        }
+
+        free(markers);
+        markers = (pixel*)malloc((endRow - startRow + 1) * (endCol - startCol + 1) * sizeof(pixel));
+        count = 0;
+
+        for (i = startRow; i <= endRow; i++) {
+            for (j = startCol; j <= endCol; j++) {
+                if (imageMatrix[i][j] == imagePixel && zhangSuenTest2(i, j) == 1) {
+                    markers[count].row = i;
+                    markers[count].col = j;
+                    count++;
+                }
+            }
+        }
+
+        if (processed == 0)
+            processed = (count > 0);
+
+        for (i = 0; i < count; i++) {
+            imageMatrix[markers[i].row][markers[i].col] = blankPixel;
+        }
+
+        free(markers);
+    } while (processed == 1);
+
+
+    for (i = 0; i < rows; i++) {
+        for (j = 0; j < cols; j++) {
+            output[i * cols + j] = imageMatrix[i][j];
+        }
+    }
+}
+
 void InverseImage(BYTE* Img, BYTE *Out, int W, int H)
 {
     int ImgSize = W * H;
@@ -625,16 +746,21 @@ void MedianFiltering(BYTE* Image, BYTE* Output, int W, int H, int size)
     }
     free(temp);
 }
-
+void FillColor(BYTE* Image, int X, int Y, int W, int H, BYTE R, BYTE G, BYTE B)
+{
+    Image[Y * W * 3 + X * 3] = B; // Blue 성분
+    Image[Y * W * 3 + X * 3 + 1] = G; // Green 성분
+    Image[Y * W * 3 + X * 3 + 2] = R; // Red 성분
+}
 // Img: 사각형을 그릴 이미지배열, W: 영상 가로사이즈, H: 영상 세로사이즈,
 // LU_X: 사각형의 좌측상단 X좌표, LU_Y: 사각형의 좌측상단 Y좌표,
 // RD_X: 사각형의 우측하단 X좌표, LU_Y: 사각형의 우측하단 Y좌표.
 void DrawRectOutline(BYTE* Img, int W, int H, int LU_X, int LU_Y, int RD_X, int RD_Y)
 {
-    for (int i = LU_X; i < RD_X; i++)     Img[LU_Y * W + i] = 255;
-    for (int i = LU_X; i < RD_X; i++)     Img[RD_Y * W + i] = 255;
-    for (int i = LU_Y; i < RD_Y; i++)     Img[i * W + LU_X] = 255;
-    for (int i = LU_Y; i < RD_Y; i++)     Img[i * W + RD_X] = 255;
+    for (int i = LU_X; i < RD_X; i++)    FillColor(Img, i, LU_Y, W, H, 255, 0, 0);
+    for (int i = LU_X; i < RD_X; i++)     FillColor(Img, i, RD_Y, W, H, 255, 0, 0);
+    for (int i = LU_Y; i < RD_Y; i++)     FillColor(Img, LU_X, i, W, H, 255, 0, 0);
+    for (int i = LU_Y; i < RD_Y; i++)    FillColor(Img, RD_X, i, W, H, 255, 0, 0);
 }
 
 // Img: 가로/세로 라인을 그릴 이미지배열, W: 영상 가로사이즈, H: 영상 세로사이즈,
@@ -673,7 +799,7 @@ void Obtain2DBoundingBox(BYTE* Image, int W, int H, int* LUX, int* LUY, int* RDX
     int flag = 0;
     for (int i = 0; i < H; i++) {
         for (int j = 0; j < W; j++) {
-            if (Image[i * W + j] == 0) {
+            if (Image[i*3 * W + j*3] != 255) {
                 *LUY = i;
                 flag = 1;
                 break;
@@ -684,7 +810,7 @@ void Obtain2DBoundingBox(BYTE* Image, int W, int H, int* LUX, int* LUY, int* RDX
     flag = 0;
     for (int i = H - 1; i >= 0; i--) {
         for (int j = 0; j < W; j++) {
-            if (Image[i * W + j] == 0) {
+            if (Image[i*3 * W + j*3] != 255) {
                 *RDY = i;
                 flag = 1;
                 break;
@@ -696,7 +822,7 @@ void Obtain2DBoundingBox(BYTE* Image, int W, int H, int* LUX, int* LUY, int* RDX
 
     for (int j = 0; j < W; j++) {
         for (int i = 0; i < H; i++) {
-            if (Image[i * W + j] == 0) {
+            if (Image[i * W + j] != 255) {
                 *LUX = j;
                 flag = 1;
                 break;
@@ -707,7 +833,7 @@ void Obtain2DBoundingBox(BYTE* Image, int W, int H, int* LUX, int* LUY, int* RDX
     flag = 0;
     for (int j = W - 1; j >= 0; j--) {
         for (int i = 0; i < H; i++) {
-            if (Image[i * W + j] == 0) {
+            if (Image[i * W + j] != 255) {
                 *RDX = j;
                 flag = 1;
                 break;
@@ -716,12 +842,8 @@ void Obtain2DBoundingBox(BYTE* Image, int W, int H, int* LUX, int* LUY, int* RDX
         if (flag == 1) break;
     }
 }
-void FillColor(BYTE* Image, int X, int Y, int W, int H, BYTE R, BYTE G, BYTE B)
-{
-    Image[Y * W * 3 + X * 3] = B; // Blue 성분
-    Image[Y * W * 3 + X * 3 + 1] = G; // Green 성분
-    Image[Y * W * 3 + X * 3 + 2] = R; // Red 성분
-}
+
+
 void RGB2YCbCr(BYTE* Image, BYTE* Y, BYTE* Cb, BYTE* Cr, int W, int H)
 {
     for (int i = 0; i < H; i++) { // Y좌표
@@ -731,6 +853,64 @@ void RGB2YCbCr(BYTE* Image, BYTE* Y, BYTE* Cb, BYTE* Cr, int W, int H)
             Cr[i * W + j] = (BYTE)(0.5 * Image[i * W * 3 + j * 3 + 2] - 0.4187 * Image[i * W * 3 + j * 3 + 1] - 0.0813 * Image[i * W * 3 + j * 3] + 128.0);
         }
     }
+}
+void Erosion(BYTE* Image, BYTE* Output, int W, int H)
+{
+    for (int i = 1; i < H - 1; i++) {
+        for (int j = 1; j < W - 1; j++) {
+            if (Image[i * W + j] == 255) // 전경화소라면
+            {
+                if (!(Image[(i - 1) * W + j] == 255 &&
+                    Image[(i + 1) * W + j] == 255 &&
+                    Image[i * W + j - 1] == 255 &&
+                    Image[i * W + j + 1] == 255)) // 4주변화소가 모두 전경화소가 아니라면
+                    Output[i * W + j] = 0;
+                else Output[i * W + j] = 255;
+            }
+            else Output[i * W + j] = 0;
+        }
+    }
+}
+
+void Dilation(BYTE* Image, BYTE* Output, int W, int H)
+{
+    for (int i = 1; i < H - 1; i++) {
+        for (int j = 1; j < W - 1; j++) {
+            if (Image[i * W + j] == 0) // 배경화소라면
+            {
+                if (!(Image[(i - 1) * W + j] == 0 &&
+                    Image[(i + 1) * W + j] == 0 &&
+                    Image[i * W + j - 1] == 0 &&
+                    Image[i * W + j + 1] == 0)) // 4주변화소가 모두 배경화소가 아니라면
+                    Output[i * W + j] = 255;
+                else Output[i * W + j] = 0;
+            }
+            else Output[i * W + j] = 255;
+        }
+    }
+}
+void FeatureExtractThinImage(BYTE * Image, BYTE * Output, int W, int H){//parameter -> Image: 세선화된 이미지,Output:분기점과 끝점 표시된 이미지
+    
+    for (int i = 1; i < H - 1; i++) {
+        for (int j = 1; j < W - 1; j++) {
+            if (Image[i * W + j] == 0) // 전경화소라면
+            {   //해당화소의 8주변화소 배경->전경 변화 check
+                int count = 0;
+                if (Image[(i - 1) * W + j - 1] != Image[i * W + j - 1]) count++;
+                if (Image[i * W + j - 1] != Image[(i + 1) * W + j - 1]) count++;
+                if (Image[(i+1) * W + j - 1] != Image[(i+1) * W + j ]) count++;
+                if (Image[(i+1) * W + j ] != Image[(i + 1) * W + j + 1]) count++;
+                if (Image[(i+1) * W + j + 1] != Image[i * W + j + 1]) count++;
+                if (Image[i * W + j + 1] != Image[(i - 1) * W + j + 1]) count++;
+                if (Image[(i-1) * W + j + 1] != Image[(i - 1) * W + j ]) count++;
+                if (Image[(i-1) * W + j ] != Image[(i - 1) * W + j - 1]) count++;
+                
+                if ((count/2)%2 == 1) Output[i * W + j] = 128; // 변화 횟수가 홀수일때 분기점 혹은 끝점
+            }
+            else Output[i * W + j] = 255;// 배경
+        }
+    }
+    
 }
 void SaveBMPFile(BITMAPFILEHEADER hf, BITMAPINFOHEADER hInfo,
     RGBQUAD* hRGB, BYTE* Output, int W, int H, const char* FileName)
@@ -755,7 +935,7 @@ int main()
         BITMAPINFOHEADER hInfo; // 40바이트
         RGBQUAD hRGB[256]; // 1024바이트
         FILE* fp;
-        fp = fopen("fruit.bmp", "rb");
+        fp = fopen("dilation.bmp", "rb");
         if (fp == NULL) {
             printf("File not found!\n");
             return -1;
@@ -779,8 +959,8 @@ int main()
         }
         fclose(fp);
         
-        int Histo[256] = { 0 };
-        int AHisto[256] = { 0 };
+//        int Histo[256] = { 0 };
+//        int AHisto[256] = { 0 };
 
         // (50, 40)위치를 특정 색상으로
         /*for (int i = 0; i < W; i++) {
@@ -844,12 +1024,11 @@ int main()
         //Binarization(Image, Output, W, H, 30);
         //InverseImage(Output, Output, W, H);
         //m_BlobColoring(Output, H, W);
-        //int Cx, Cy;
-        //int LUX, LUY, RDX, RDY;
-        //Obtain2DCenter(Output, W, H, &Cx, &Cy); // 이진영상의 무게중심 구하기
-        //Obtain2DBoundingBox(Output, W, H, &LUX, &LUY, &RDX, &RDY); // 이진영상의 외접직사각형 좌표 추출
+//    int Cx, Cy;
+//    Obtain2DCenter(Output, W, H, &Cx, &Cy); // 이진영상의 무게중심 구하기
+    
         //DrawCrossLine(Image, W, H, Cx, Cy);
-        //DrawRectOutline(Image, W, H, LUX, LUY, RDX, RDY);
+
 
         // Red값이 큰 화소만 masking (R, G, B 모델 기준)
         //for (int i = 0; i < H; i++) { // Y좌표
@@ -867,26 +1046,33 @@ int main()
         //}
     // rgb color model 에서는 밝기가 달라지면 검출이 어렵다.
 
-        BYTE* Y = (BYTE *)malloc(ImgSize);
-        BYTE* Cb = (BYTE*)malloc(ImgSize);
-        BYTE* Cr = (BYTE*)malloc(ImgSize);
-
-        RGB2YCbCr(Image, Y, Cb, Cr, W, H);
-
-        // 빨간색 딸기영역만 masking (Y, Cb, Cr 모델 기준)
-        for (int i = 0; i < H; i++) {
-            for (int j = 0; j < W; j++) {
-                if (Cb[i * W + j] > 80 && Cr[i * W + j] > 190) {
-                    Output[i * W * 3 + j * 3] = Image[i * W * 3 + j * 3];
-                    Output[i * W * 3 + j * 3 + 1] = Image[i * W * 3 + j * 3 + 1];
-                    Output[i * W * 3 + j * 3 + 2] = Image[i * W * 3 + j * 3 + 2];
-                }
-                else
-                    Output[i * W * 3 + j * 3] = Output[i * W * 3 + j * 3 + 1] = Output[i * W * 3 + j * 3 + 2] = 255;
-            }
-        }
+//        BYTE* Y = (BYTE *)malloc(ImgSize);
+//        BYTE* Cb = (BYTE*)malloc(ImgSize);
+//        BYTE* Cr = (BYTE*)malloc(ImgSize);
 //
-
+//        RGB2YCbCr(Image, Y, Cb, Cr, W, H);
+//
+//        // 피부 masking (Y, Cb, Cr 모델 기준)
+//        for (int i = 0; i < H; i++) {
+//            for (int j = 0; j < W; j++) {
+//                if (Cb[i * W + j] > 95 && Cb[i * W + j] < 145 && Cr[i * W + j] > 140 && Cr[i * W + j] < 195) {
+//                    Output[i * W * 3 + j * 3] = Image[i * W * 3 + j * 3];
+//                    Output[i * W * 3 + j * 3 + 1] = Image[i * W * 3 + j * 3 + 1];
+//                    Output[i * W * 3 + j * 3 + 2] = Image[i * W * 3 + j * 3 + 2];
+//                }
+//                else
+//                    Output[i * W * 3 + j * 3] = Output[i * W * 3 + j * 3 + 1] = Output[i * W * 3 + j * 3 + 2] = 255;
+//            }
+//        }
+//
+//    int LUX, LUY, RDX, RDY;
+//    Obtain2DBoundingBox(Output, W, H, &LUX, &LUY, &RDX, &RDY); // 이진영상의 외접직사각형 좌표 추출
+//    // 기준점 확인
+//    printf("%d %d %d %d",LUX, LUY, RDX, RDY );
+////    FillColor(Output, LUX, LUY, W, H, 255, 0, 0);
+////    FillColor(Output, RDX, RDY, W, H, 255, 0, 0);
+//
+//        DrawRectOutline(Output, W, H, LUX, LUY, RDX, RDY);
 //        fp = fopen("Y.raw", "wb");
 //        fwrite(Y, sizeof(BYTE), W * H, fp);
 //        fclose(fp);
@@ -900,7 +1086,20 @@ int main()
 //        free(Y);
 //        free(Cb);
 //        free(Cr);
-        SaveBMPFile(hf, hInfo, hRGB, Output, hInfo.biWidth, hInfo.biHeight, "output.bmp");
+    
+    Dilation(Image, Output, W, H);
+    Dilation(Output, Image, W, H);
+    Dilation(Image, Output, W, H);
+    
+    Erosion(Output, Image, W, H);
+    Erosion(Image, Output, W, H);
+    
+    InverseImage(Output, Output, W, H);
+    zhangSuen(Output, Image, H, W);
+    FeatureExtractThinImage(Image,Output,W, H);
+    
+
+    SaveBMPFile(hf, hInfo, hRGB, Output, hInfo.biWidth, hInfo.biHeight, "output.bmp");
 
 
 

@@ -24,6 +24,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		2809E64A28354F2D00C3C6ED /* face.bmp */ = {isa = PBXFileReference; lastKnownFileType = image.bmp; path = face.bmp; sourceTree = "<group>"; };
 		282278AD2832223F00B871B6 /* fruit.bmp */ = {isa = PBXFileReference; lastKnownFileType = image.bmp; path = fruit.bmp; sourceTree = "<group>"; };
 		285EACCD27DD523D0052F1AD /* BMP */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = BMP; sourceTree = BUILT_PRODUCTS_DIR; };
 		285EACD027DD523D0052F1AD /* lenatest.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = lenatest.cpp; sourceTree = "<group>"; usesTabs = 0; };
@@ -73,6 +74,7 @@
 				28A72E2E280405480079EB16 /* lenna_impulse.bmp */,
 				28A72E2F28040CFC0079EB16 /* LENNA_gauss.bmp */,
 				282278AD2832223F00B871B6 /* fruit.bmp */,
+				2809E64A28354F2D00C3C6ED /* face.bmp */,
 			);
 			path = BMP;
 			sourceTree = "<group>";
