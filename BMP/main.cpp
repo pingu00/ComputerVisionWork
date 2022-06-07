@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <math.h>
 #pragma warning(disable:4996)
-#include "Header.hpp"
+  #include "Header.hpp"
 //
 //#pragma warning(disable:4996)
 //#include <stdio.h>
@@ -713,19 +713,19 @@ void Scaling(BYTE* Image, BYTE* Output, int W, int H, double SF_X, double SF_Y)
 
 }
 
-//void Rotation(BYTE* Image, BYTE* Output, int W, int H, int Angle)
-//{
-//    int tmpX, tmpY;
-//    double Radian = Angle * 3.141592 / 180.0;
-//    for (int i = 0; i < H; i++) {
-//        for (int j = 0; j < W; j++) {
-//            tmpX = (int)(cos(Radian) * j + sin(Radian) * i);
-//            tmpY = (int)(-sin(Radian) * j + cos(Radian) * i);
-//            if ((tmpY < H && tmpY >= 0) && (tmpX < W && tmpX >= 0))
-//                Output[i * W + j] = Image[tmpY * W + tmpX];
-//        }
-//    }
-//}
+void Rotation(BYTE* Image, BYTE* Output, int W, int H, int Angle)
+{
+    int tmpX, tmpY;
+    double Radian = Angle * 3.141592 / 180.0;
+    for (int i = 0; i < H; i++) {
+        for (int j = 0; j < W; j++) {
+            tmpX = (int)(cos(Radian) * j + sin(Radian) * i);
+            tmpY = (int)(-sin(Radian) * j + cos(Radian) * i);
+            if ((tmpY < H && tmpY >= 0) && (tmpX < W && tmpX >= 0))
+                Output[i * W + j] = Image[tmpY * W + tmpX];
+        }
+    }
+}
 
 void MedianFiltering(BYTE* Image, BYTE* Output, int W, int H, int size)
 {
